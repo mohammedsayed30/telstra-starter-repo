@@ -1,4 +1,4 @@
-package au.com.telstra.simcardactivator;
+package au.com.telstra.simcardactivator.simcard.dto;
 
 public class ActuateRequest {
     public String iccId;

@@ -1,6 +1,12 @@
-package au.com.telstra.simcardactivator;
+package au.com.telstra.simcardactivator.simcard.controller;
 
 
+import au.com.telstra.simcardactivator.simcard.dto.ActuateRequest;
+import au.com.telstra.simcardactivator.simcard.dto.ActuatorRequest;
+import au.com.telstra.simcardactivator.simcard.dto.ActuatorResponse;
+import au.com.telstra.simcardactivator.simcard.model.SimCard;
+import au.com.telstra.simcardactivator.simcard.service.SimCardService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -12,13 +18,16 @@ import org.springframework.web.client.RestTemplate;
 
 
 @RestController
-public class GateWayController {
+public class SimCardController {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Autowired
+    private SimCardService simCardService;
+
     //receive post end point that call the actuator microservice
     @PostMapping("/api/v1/actuator")
-    public ResponseEntity<ActuatorResponse> actuator(@RequestBody ActuatorRequest actuatorRequest){
+    public ResponseEntity<SimCard> actuator(@RequestBody ActuatorRequest actuatorRequest){
         //api endpoint  URL
         String url = "http://localhost:8444/actuate";
 
@@ -37,13 +46,14 @@ public class GateWayController {
                 ActuatorResponse.class
         );
 
-        //print the response
-        System.out.println(response.getBody());
+        boolean status = response.getBody().isSuccess();
+
+        //save the response to the database
+        SimCard simCard= simCardService.save(actuatorRequest.getIccId(),actuatorRequest.getCustomerEmail(),status);
+
 
         //return the body
-        return ResponseEntity
-                .status(response.getStatusCode())
-                .body(response.getBody());
+        return ResponseEntity.ok(simCard);
 
     }
 }
